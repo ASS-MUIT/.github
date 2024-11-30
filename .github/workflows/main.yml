@@ -25,7 +25,14 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.AI_API_KEY }}
         with:
-          script: |            
+          script: |          
+            try {
+              require('openai'); // Intenta requerir openai primero
+            } catch (error) {
+              console.log('Instalando openai...');
+                const { execSync } = require('child_process');
+              execSync('npm install openai', { stdio: 'inherit' }); // Instala si no está presente  
+            }
             const fs = require('fs');
             const text = fs.readFileSync('./README.md', 'utf-8');
             const { Configuration, OpenAIApi } = require("openai");
