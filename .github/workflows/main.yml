@@ -20,9 +20,12 @@ jobs:
         run: |
           texto=$(cat README.md)
           echo "::set-output name=README::$texto"
+      - name: Instalar api
+        run: pip install google-cloud-aiplatform
       - name: user OpenAI para traducir
         id: translate_text
         uses: actions/github-script@v6
+      
         with:
           script: |
             const text = context.payload.README;
