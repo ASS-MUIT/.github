@@ -7,7 +7,7 @@ on:
     paths:
       - 'README.md'
 jobs:
-  Tranlate:
+  Translate:
     runs-on: ubuntu-latest
     env:
        OPENAI_API_KEY: ${{secrets.AI_API_KEY}}
@@ -25,7 +25,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const text = context.payload.texto_a_traducir;
+            const text = context.payload.README;
             const response = await openai.completions.create({
               engine: 'text-davinci-003', # o cualquier otro modelo suitable
               prompt: `Translate the following Spanish text to English:\n\n${text}`,
