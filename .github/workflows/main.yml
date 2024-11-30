@@ -1,73 +1,55 @@
 name: Mejora Documentacion
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'README.md'
+
 jobs:
-  translate:
+  traducir:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    env:
-      OPENAI_API_KEY: ${{secrets.AI_API_KEY}}
-      GITHUB_TOKEN: ${{secrets.TRADUCTOR_TOKEN}}
     steps:
-      - name: Checkout code
+      - name: Checkout del repositorio
         uses: actions/checkout@v3
-      - name: Install OpenAI Python Library
-        run: pip install openai  
-      - name: Translate README.md with OpenAI
-        
-        uses: actions/github-script@v6
-        env:
-          OPENAI_API_KEY: ${{ secrets.AI_API_KEY }}
-        with:
-          script: |          
-            try {
-              require('openai'); // Intenta requerir openai primero
-            } catch (error) {
-              console.log('Instalando openai...');
-                const { execSync } = require('child_process');
-              execSync('npm install openai', { stdio: 'inherit' }); // Instala si no está presente  
-            }
-            const fs = require('fs');
-            const text = fs.readFileSync('./README.md', 'utf-8');
-            const { Configuration, OpenAIApi } = require("openai");
-            const configuration = new Configuration({
-              apiKey: process.env.OPENAI_API_KEY,
-            });
-            const openai = new OpenAIApi(configuration);          
-            const response = await openai.completions.create({
-              model: 'text-davinci-003',
-              prompt: 'Translate the following Spanish text to English:\n\n' + text,  // Cambio aquí
-              max_tokens: 2048,
-              temperature: 0.5,
-            });
-            const translation = response.data.choices[0].text.trim();
-            console.log("Traducción:", translation);      
-            return translation;
-      - name: Escribir la traducción a un archivo
+
+      - name: Obtener token de Gemini API
+        id: get_gemini_token
         run: |
-          echo "${{ steps.translate_text.outputs.result }}" > README_en.md
-      - name: Commit del archivo traducido (Opcional - Requiere permisos de escritura)
-        if: steps.translate_text.outputs.result
-        uses: actions/github-script@v6
-        with:           
-           script: |
-             const fs = require('fs');
-             const translatedContent = fs.readFileSync('README_en.md', 'utf-8');     
-             await github.rest.repos.createOrUpdateFileContents({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                path: 'README_en.md',
-                message: 'Traducción automática del texto',
-                content: translatedContent.toString('base64'),
-                committer: {
-                   name: 'github-actions[bot]',
-                   email: 'github-actions[bot]@users.noreply.github.com'
-                },
-               branch: 'main'
-              });
+          echo "::set-output name=gemini_token::$(echo ${{secrets.AI_API_KEY}})"
+
+      - name: Leer README.md
+        id: read_readme
+        run: |
+          README_CONTENT=$(cat README.md)
+          echo "::set-output name=readme_content::${README_CONTENT}"
+
+      - name: Traducir con Gemini API
+        id: translate_readme
+        run: |
+          API_KEY="${{ steps.get_gemini_token.outputs.gemini_token }}"
+          README_TEXT="${{ steps.read_readme.outputs.readme_content }}"
+
+          # Escapar comillas dobles para la solicitud JSON
+          README_TEXT_ESCAPED=$(echo "$README_TEXT" | sed 's/"/\\"/g')
+
+
+          TRANSLATED_TEXT=$(curl -s -X POST \
+            -H "Authorization: Bearer $API_KEY" \
+            -H "Content-Type: application/json" \
+            --data "{
+              \"model\": \"text-davinci-003\", 
+              \"prompt\": \"Translate the following text to English:\\n\\n$README_TEXT_ESCAPED\",
+              \"max_tokens\": 2048,
+               \"temperature\": 0.5
+            }" \
+             https://api.openai.com/v1/completions | jq -r '.choices[0].text')
+
+          echo "::set-output name=translated_text::${TRANSLATED_TEXT}"
+
+
+      - name: Guardar traducción en README_EN.md
+        run: |
+          echo "${{ steps.translate_readme.outputs.translated_text }}" > README_EN.md
+        
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Add English translation of README.md"
+          file_pattern: README_EN.md
