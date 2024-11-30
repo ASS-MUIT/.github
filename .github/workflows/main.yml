@@ -1,33 +1,58 @@
 name: Mejora Documentacion
 on:
-  # Execute when a comment is created in a file of a pull request
-  #pull_request_review_comment:
-    #types: [ created ]
-  workflow_dispatch:
- 
+  push:
+    branches:
+      - main
+    paths:
+      - 'README.md'
 jobs:
   Tranlate:
     runs-on: ubuntu-latest
     env:
-      GITHUB_LOGIN: ${{ github.actor }}
+       OPENAI_API_KEY: ${{secrets.AI_API_KEY}}
+       github-token: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Traduciendo markdown
-        # uses: trystan2k/md-translator-reviewer@3125179041a779cc7dc7d9fa9428c6b3a89c98cd
-        uses: trystan2k/md-translator-reviewer@v1.1.1
+      - name: Leer el texto a traducir
+        id: read_text
+        run: |
+          texto=$(cat README.md)
+          echo "::set-output name=README::$texto"
+      - name: user OpenAI para traducir
+        id: translate_text
+        uses: actions/github-script@v6
         with:
-          # GITHUB_TOKEN or a `repo` scoped Personal Access Token (PAT)
-          #token: # optional, default is ${{ github.token }}
-          # API Key to use the AI service
-          aiApiKey: ${{secrets.AI_API_KEY}}
-          # AI Provider
-          aiProvider: google
-          # optional, default is google
-          # AI language model to use.
-          #aiModel: # optional, default is gemini-1.5-flash
-          # Commit message template when creating new translated file. %file is replaced with the file name and %lang with language
-          translateCommitMessageTemplate: add translation of file %README.md for language %english
-          # Commit message template when creating a reviewed file. %file is replaced with the file name
-          applyReviewCommitMessageTemplate: apply review suggestions for file %README.md
-          
+          script: |
+            const text = context.payload.texto_a_traducir;
+            const response = await openai.completions.create({
+              engine: 'text-davinci-003', # o cualquier otro modelo suitable
+              prompt: `Translate the following Spanish text to English:\n\n${text}`,
+              max_tokens: 1000, # ajusta según la longitud del texto
+              temperature: 0.5,  #Ajusta para controlar la "creatividad" de la traducción
+            });        
+            const translation = response.data.choices[0].text.trim();
+            console.log("Traducción:", translation);      
+            return translation;
+      - name: Escribir la traducción a un archivo
+        run: |
+          echo "${{ steps.translate_text.outputs.result }}" > README_en.md
+      - name: Commit del archivo traducido (Opcional - Requiere permisos de escritura)
+        if: steps.translate_text.outputs.result
+        uses: actions/github-script@v6
+        with:           
+           script: |
+             const fs = require('fs');
+             const translatedContent = fs.readFileSync('README_en.md', 'utf-8');     
+             await github.rest.repos.createOrUpdateFileContents({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: 'README_en.md',
+                message: 'Traducción automática del texto',
+                content: translatedContent.toString('base64'),
+                committer: {
+                   name: 'github-actions[bot]',
+                   email: 'github-actions[bot]@users.noreply.github.com'
+                },
+               branch: 'main'
+              });
