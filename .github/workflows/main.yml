@@ -7,29 +7,27 @@ on:
     paths:
       - 'README.md'
 jobs:
-  Translate:
+  translate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     env:
-       OPENAI_API_KEY: ${{secrets.AI_API_KEY}}
-       GITHUB_TOKEN: ${{secrets.TRADUCTOR_TOKEN}}
+      OPENAI_API_KEY: ${{secrets.AI_API_KEY}}
+      GITHUB_TOKEN: ${{secrets.TRADUCTOR_TOKEN}}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Leer el texto a traducir
-        id: read_text
-        run: |
-          texto=$(cat README.md)
-          echo "::set-output name=README::$texto"
+      - name: Checkout code
+        uses: actions/checkout@v3
       - name: Install OpenAI Python Library
-        run: pip install openai
-      - name: user OpenAI para traducir
-        id: translate_text
+        run: pip install openai  
+      - name: Translate README.md with OpenAI
+        
         uses: actions/github-script@v6
-      
+        env:
+          OPENAI_API_KEY: ${{ secrets.AI_API_KEY }}
         with:
-          script: |
+          script: |            
             const fs = require('fs');
-            const text = fs.readFileSync('./README.md', 'utf-8'); // Lee el archivo directamente
+            const text = fs.readFileSync('./README.md', 'utf-8');
             const { Configuration, OpenAIApi } = require("openai");
             const configuration = new Configuration({
               apiKey: process.env.OPENAI_API_KEY,
@@ -37,8 +35,8 @@ jobs:
             const openai = new OpenAIApi(configuration);          
             const response = await openai.completions.create({
               model: 'text-davinci-003',
-              prompt: `Translate the following Spanish text to English:\n\n${text}`,
-              max_tokens: 2048, # Aumentado para textos más largos
+              prompt: 'Translate the following Spanish text to English:\n\n' + text,  // Cambio aquí
+              max_tokens: 2048,
               temperature: 0.5,
             });
             const translation = response.data.choices[0].text.trim();
