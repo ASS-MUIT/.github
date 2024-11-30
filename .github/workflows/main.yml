@@ -18,16 +18,16 @@ jobs:
         uses: trystan2k/md-translator-reviewer@v1.1.1
         with:
         # GITHUB_TOKEN or a `repo` scoped Personal Access Token (PAT)
-        token: # optional, default is ${{ github.token }}
+        #token: # optional, default is ${{ github.token }}
         # API Key to use the AI service
         aiApiKey: ${{secrets.AI_API_KEY}}
         # AI Provider
         aiProvider: google
         # optional, default is google
         # AI language model to use.
-        aiModel: # optional, default is gemini-1.5-flash
+        #aiModel: # optional, default is gemini-1.5-flash
         # Commit message template when creating new translated file. %file is replaced with the file name and %lang with language
         translateCommitMessageTemplate: add translation of file %README.md for language %english
         # Commit message template when creating a reviewed file. %file is replaced with the file name
-        applyReviewCommitMessageTemplate: # optional, default is apply review suggestions for file %file
+        applyReviewCommitMessageTemplate: apply review suggestions for file %README.md
           
