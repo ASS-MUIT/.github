@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
        OPENAI_API_KEY: ${{secrets.AI_API_KEY}}
-       github-token: ${{secrets.GITHUB_TOKEN}}
+       github-token: ${{secrets.TRADUCTOR_TOKEN}}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
