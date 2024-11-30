@@ -12,42 +12,40 @@ jobs:
       - name: Obtener token de Gemini API
         id: get_gemini_token
         run: |
-          echo "::set-output name=gemini_token::$(echo ${{secrets.AI_API_KEY}})"
+          echo "gemini_token=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
 
       - name: Leer README.md
         id: read_readme
         run: |
           README_CONTENT=$(cat README.md)
-          echo "::set-output name=readme_content::${README_CONTENT}"
+          echo "readme_content=$README_CONTENT" >> $GITHUB_ENV
 
       - name: Traducir con Gemini API
         id: translate_readme
         run: |
-          API_KEY="${{ steps.get_gemini_token.outputs.gemini_token }}"
-          README_TEXT="${{ steps.read_readme.outputs.readme_content }}"
+          API_KEY="${{ env.gemini_token }}"
+          README_TEXT="${{ env.readme_content }}"
 
           # Escapar comillas dobles para la solicitud JSON
           README_TEXT_ESCAPED=$(echo "$README_TEXT" | sed 's/"/\\"/g')
-
 
           TRANSLATED_TEXT=$(curl -s -X POST \
             -H "Authorization: Bearer $API_KEY" \
             -H "Content-Type: application/json" \
             --data "{
-              \"model\": \"text-davinci-003\", 
+              \"model\": \"text-davinci-003\",
               \"prompt\": \"Translate the following text to English:\\n\\n$README_TEXT_ESCAPED\",
               \"max_tokens\": 2048,
-               \"temperature\": 0.5
+              \"temperature\": 0.5
             }" \
-             https://api.openai.com/v1/completions | jq -r '.choices[0].text')
+            https://api.openai.com/v1/completions | jq -r '.choices[0].text')
 
-          echo "::set-output name=translated_text::${TRANSLATED_TEXT}"
-
+          echo "translated_text=$TRANSLATED_TEXT" >> $GITHUB_ENV
 
       - name: Guardar traducción en README_EN.md
         run: |
-          echo "${{ steps.translate_readme.outputs.translated_text }}" > README_EN.md
-        
+          echo "${{ env.translated_text }}" > README_EN.md
+
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
