@@ -1,6 +1,7 @@
-name: Mejora Documentacion
+name: Traductor Gemini
+
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Ejecución manual
 
 jobs:
   traducir:
@@ -9,45 +10,29 @@ jobs:
       - name: Checkout del repositorio
         uses: actions/checkout@v3
 
-      - name: Obtener token de Gemini API
-        id: get_gemini_token
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10' # O la versión de Python que necesites
+
+      - name: Instalar dependencias
         run: |
-          echo "gemini_token=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+          python -m pip install --upgrade pip
+          pip install google-generativeai
 
-      - name: Leer README.md
-        id: read_readme
+      - name: Obtener la clave de la API de Gemini
+        env:
+            GEMINI_API_KEY: ${{ secrets.AI_API_KEY }}
         run: |
-          README_CONTENT=$(cat README.md)
-          echo "readme_content=$README_CONTENT" >> $GITHUB_ENV
+           echo "GEMINI_API_KEY=$GEMINI_API_KEY" >> $GITHUB_ENV #Forma recomendada de setear variables de entorno
 
-      - name: Traducir con Gemini API
-        id: translate_readme
+
+      - name: Ejecutar el script traductor.py (Ejemplo con archivos de prueba)
         run: |
-          API_KEY="${{ env.gemini_token }}"
-          README_TEXT="${{ env.readme_content }}"
+          python traductor.py README.md README_en.md
 
-          # Escapar comillas dobles para la solicitud JSON
-          README_TEXT_ESCAPED=$(echo "$README_TEXT" | sed 's/"/\\"/g')
-
-          TRANSLATED_TEXT=$(curl -s -X POST \
-            -H "Authorization: Bearer $API_KEY" \
-            -H "Content-Type: application/json" \
-            --data "{
-              \"model\": \"text-davinci-003\",
-              \"prompt\": \"Translate the following text to English:\\n\\n$README_TEXT_ESCAPED\",
-              \"max_tokens\": 2048,
-              \"temperature\": 0.5
-            }" \
-            https://api.openai.com/v1/completions | jq -r '.choices[0].text')
-
-          echo "translated_text=$TRANSLATED_TEXT" >> $GITHUB_ENV
-
-      - name: Guardar traducción en README_EN.md
-        run: |
-          echo "${{ env.translated_text }}" > README_EN.md
-
-      - name: Commit changes
+      - name: Commit de los cambios (si se generan nuevos archivos)
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: "Add English translation of README.md"
-          file_pattern: README_EN.md
+          commit_message: "Traducción automática con Gemini"
+          file_pattern: *.md # Ajusta según los archivos que genere tu script
