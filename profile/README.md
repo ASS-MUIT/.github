@@ -39,7 +39,7 @@ Para desplegar un proceso jBPM en Kie Server, sigue estos pasos:
 
 1. **Construye tu proyecto:**  Empaqueta tu proyecto jBPM como un archivo .jar (kjart).
 2. **Accede a la consola de Kie Server:** Abre la consola de administración de Kie Server en tu navegador. (normalmente `http://localhost:8080/kie-server/services/rest/server`)
-3. **Despliega el kjart:** En la sección "Deployments", selecciona la opción para desplegar un nuevo archivo y sube tu archivo .jar.  
+3. **Despliega el kjar:** En la sección "Deployments", selecciona la opción para desplegar un nuevo archivo y sube tu archivo .jar.  
 4. **Verifica el despliegue:** Asegúrate de que tu proceso esté desplegado correctamente en la sección "Containers"  verificando que se ha creado el contenedor correspondiente a la unidad de despliegue.  Puedes probar la ejecución del proceso instanciándolo en Business Central o a través de la API REST de Kie Server.
 
 ## Repositorios de trabajo en la organización github del curso (ASS-MUIT)
