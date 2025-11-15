@@ -27,7 +27,7 @@ jobs:
 
       - name: Ejecutar el script traductor.py (Ejemplo con archivos de prueba)
         run: |
-          python traductor.py README.md README_en.md
+          python traductor.py LEEME.md README.md
 
       - name: Commit de los cambios (si se generan nuevos archivos)
         uses: stefanzweifel/git-auto-commit-action@v4
