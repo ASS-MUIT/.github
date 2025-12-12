@@ -50,8 +50,8 @@ Below is a brief description of each repository available in the ASS-MUIT organi
 - **Repository 2: [camel](https://github.com/ASS-MUIT/camel):** Spring Boot application, an example with some Camel routes used to carry out the third activity of the course.
 - **Repository 3: [neurologicalassessment-kjar](https://github.com/ASS-MUIT/neurologicalassessment-kjar):** Knowledge base for the fourth activity of the course. Includes the example business process, among other assets.
 - **Repository 4: [wih](https://github.com/ASS-MUIT/wih):** Work Item Handler to query attributes of a FHIR `Appointment` resource, used in the fourth activity of the course.
-- **Repository 5: [kogitoNeurologicalAssessment](https://github.com/ASS-MUIT/kogitoNeurologicalAssessment):** Spring Boot application, Kogito example application. Includes integration with Kafka and is used in the fifth activity of the course.
-- **Repository 6: [ICD](https://github.com/ASS-MUIT/ICD):** Knowledge base for the terminology systems practice.
+- **Repository 5: [kogitoNeurologicalAssessment](https://github.com/ASS-MUIT/kogitoNeurologicalAssessment):** Spring Boot application, Kogito example application with BPMN assets. Includes integration with Kafka. Used to support EDA Architectures. used in the 5th course activity.
+- **Repository 6: [dn4-decision-service](https://github.com/ASS-MUIT/dn4-decision-service)):** Spring Boot application, Kogito example application with DMN assets. Includes customized CDS Hooks interface for integration in healthcare workflows. Used to support CDSS, in the 8th course activity.
 
 ## Reference repositories
 
